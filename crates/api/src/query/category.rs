@@ -32,7 +32,7 @@ impl CategoryQuery {
             .await
     }
 
-    /// If ok, returns (post models, num pages).
+    /// If ok, returns an object with Categories and the number of pages.
     async fn find_categories_in_page(
         &self,
         ctx: &Context<'_>,
@@ -48,7 +48,7 @@ impl CategoryQuery {
             .paginate(db.get_connection(), posts_per_page);
         let num_pages = paginator.num_pages().await?;
 
-        // Fetch paginated posts
+        // Fetch paginated categories
         paginator
             .fetch_page(page - 1)
             .await

@@ -2,9 +2,14 @@
 name = "server"
 version = "0.1.0"
 edition = "2021"
+default-run = "server"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+api = { version = "0.1.0", path = "../api" }
+async-graphql-axum = "5.0.7"
 axum = "0.6.12"
+dotenvy = "0.15.7"
+entity = { version = "0.1.0", path = "../entity" }
 tokio = { version = "1.27.0", features = ["macros", "rt-multi-thread"] }
