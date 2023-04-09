@@ -13,3 +13,4 @@ axum = "0.6.12"
 dotenvy = "0.15.7"
 entity = { version = "0.1.0", path = "../entity" }
 tokio = { version = "1.27.0", features = ["macros", "rt-multi-thread"] }
+tower-http = { version = "0.4.0", features = ["cors"] }

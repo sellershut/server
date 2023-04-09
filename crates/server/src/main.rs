@@ -2,12 +2,16 @@ use std::net::SocketAddr;
 
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
 use axum::{
+    http::{header, HeaderValue, Method},
     response::{Html, IntoResponse},
     routing, Extension, Router,
 };
+
 #[cfg(debug_assertions)]
 use dotenvy::dotenv;
 use entity::async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
+
+use tower_http::cors::CorsLayer;
 
 #[tokio::main]
 async fn main() {
@@ -18,7 +22,13 @@ async fn main() {
 
     let app = Router::new()
         .route("/api/graphql", routing::get(playground).post(handler))
-        .layer(Extension(schema));
+        .layer(Extension(schema))
+        .layer(
+            CorsLayer::new()
+                .allow_origin("http://localhost:5173".parse::<HeaderValue>().unwrap())
+                .allow_headers([header::CONTENT_TYPE])
+                .allow_methods([Method::GET, Method::POST]),
+        );
 
     let address = SocketAddr::from(([127, 0, 0, 1], 3000));
     println!("Server is live on {address}");
