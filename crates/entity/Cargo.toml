@@ -7,5 +7,5 @@ edition = "2021"
 
 [dependencies]
 async-graphql = "5.0.7"
-sea-orm = "0.11.2"
+sea-orm = { version = "0.11.2", features = ["postgres-array"]}
 serde = { version = "1.0.159", features = ["derive"] }
