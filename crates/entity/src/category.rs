@@ -27,3 +27,9 @@ impl Related<super::ad::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+impl Entity {
+    pub fn find_by_parent_id(id: i32) -> Select<Entity> {
+        Self::find().filter(Column::ParentId.eq(id))
+    }
+}

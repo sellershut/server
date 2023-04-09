@@ -37,15 +37,21 @@ impl CategoryQuery {
         &self,
         ctx: &Context<'_>,
         page: u64,
-        posts_per_page: u64,
+        max_per_page: u64,
+        parent_id: Option<i32>,
     ) -> Result<PaginatedCategories, DbErr> {
         let db = ctx
             .data::<Database>()
             .map_err(|e| DbErr::Conn(RuntimeErr::Internal(e.message)))?;
+        let entities = if let Some(parent_id) = parent_id {
+            category::Entity::find_by_parent_id(parent_id)
+        } else {
+            category::Entity::find()
+        };
         // Setup paginator
-        let paginator = category::Entity::find()
+        let paginator = entities
             .order_by_asc(category::Column::Id)
-            .paginate(db.get_connection(), posts_per_page);
+            .paginate(db.get_connection(), max_per_page);
         let num_pages = paginator.num_pages().await?;
 
         // Fetch paginated categories
