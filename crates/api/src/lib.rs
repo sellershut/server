@@ -1,6 +1,11 @@
 mod query;
 
-use entity::sea_orm::DatabaseConnection;
+use entity::{
+    async_graphql::{EmptyMutation, EmptySubscription, Schema},
+    sea_orm::DatabaseConnection,
+};
+
+use self::query::Query;
 
 pub struct Database {
     pub connection: DatabaseConnection,
@@ -20,4 +25,14 @@ impl Database {
     pub fn get_connection(&self) -> &DatabaseConnection {
         &self.connection
     }
+}
+
+pub type AppSchema = Schema<Query, EmptyMutation, EmptySubscription>;
+
+pub async fn build_schema() -> AppSchema {
+    let db = Database::new().await;
+
+    Schema::build(Query::default(), EmptyMutation, EmptySubscription)
+        .data(db)
+        .finish()
 }

@@ -9,7 +9,7 @@ use async_graphql::{Context, Object};
 use crate::Database;
 
 #[derive(Default)]
-pub struct Query;
+pub struct CategoryQuery;
 
 #[derive(SimpleObject)]
 pub struct PaginatedCategories {
@@ -18,7 +18,7 @@ pub struct PaginatedCategories {
 }
 
 #[Object]
-impl Query {
+impl CategoryQuery {
     async fn find_category_by_id(
         &self,
         ctx: &Context<'_>,
