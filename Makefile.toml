@@ -1,0 +1,44 @@
+[env]
+CARGO_MAKE_EXTEND_WORKSPACE_MAKEFILE = true
+
+[tasks.format]
+install_crate = "rustfmt"
+command = "cargo"
+args = ["fmt", "--", "--emit=files"]
+
+[tasks.clean]
+command = "cargo"
+args = ["clean"]
+
+[tasks.build]
+command = "cargo"
+args = ["build"]
+dependencies = ["clean"]
+
+[tasks.test]
+command = "cargo"
+args = ["test"]
+dependencies = ["clean"]
+
+[tasks.pre-build]
+command = "cp"
+args = [".env.example", ".env"]
+
+[tasks.migration-up]
+cwd = "./crates"
+workspace = false
+install_crate = "sea-orm-cli"
+command = "sea-orm-cli"
+args = [ "migrate", "up" ]
+
+[tasks.migration-down]
+cwd = "./crates"
+workspace = false
+install_crate = "sea-orm-cli"
+command = "sea-orm-cli"
+args = [ "migrate", "down" ]
+
+[tasks.dev]
+workspace = false
+command = "cargo"
+args = [ "watch", "-x run" ]
