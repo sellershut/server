@@ -13,14 +13,14 @@ use crate::Database;
 pub struct CategoryQuery;
 
 #[derive(SimpleObject)]
-pub struct PaginatedCategories {
+pub struct Categories {
     categories: Vec<category::Model>,
     pages: u64,
 }
 
 #[Object]
 impl CategoryQuery {
-    async fn find_category_by_id(
+    async fn get_category_by_id(
         &self,
         ctx: &Context<'_>,
         id: i32,
@@ -31,17 +31,17 @@ impl CategoryQuery {
     }
 
     /// If ok, returns an object with Categories and the number of pages.
-    async fn find_categories_in_page(
+    async fn get_categories(
         &self,
         ctx: &Context<'_>,
         page: u64,
         max_per_page: u64,
         parent_id: Option<i32>,
-    ) -> Result<PaginatedCategories, DbErr> {
+    ) -> Result<Categories, DbErr> {
         let conn = Database::get_connection_from_context(ctx)?;
 
         let (categories, pages) =
             Query::find_categories_in_page(conn, page, max_per_page, parent_id).await?;
-        Ok(PaginatedCategories { categories, pages })
+        Ok(Categories { categories, pages })
     }
 }
