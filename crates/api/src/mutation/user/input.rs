@@ -4,7 +4,7 @@ use entity::{
 };
 
 #[derive(InputObject, Debug)]
-pub struct CreateUserInput {
+pub struct UserInput {
     name: Option<String>,
     email: Option<String>,
     email_verified: Option<DateTimeWithTimeZone>,
@@ -13,7 +13,7 @@ pub struct CreateUserInput {
     watched_categories: Option<Vec<i32>>,
 }
 
-impl CreateUserInput {
+impl UserInput {
     pub(crate) fn into_model_with_arbitrary_id(self) -> user::Model {
         user::Model {
             id: Uuid::nil(),

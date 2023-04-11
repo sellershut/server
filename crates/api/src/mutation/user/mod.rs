@@ -6,14 +6,14 @@ use entity::{async_graphql, sea_orm::prelude::Uuid, user};
 
 use crate::Database;
 
-use self::input::CreateUserInput;
+use self::input::UserInput;
 
 #[derive(Default)]
 pub struct UserMutation;
 
 #[Object]
 impl UserMutation {
-    async fn create_user(&self, ctx: &Context<'_>, input: CreateUserInput) -> Result<user::Model> {
+    async fn create_user(&self, ctx: &Context<'_>, input: UserInput) -> Result<user::Model> {
         let conn = Database::get_connection_from_context(ctx)?;
 
         Ok(Mutation::create_user(conn, input.into_model_with_arbitrary_id()).await?)
@@ -23,7 +23,7 @@ impl UserMutation {
         &self,
         ctx: &Context<'_>,
         id: String,
-        input: CreateUserInput,
+        input: UserInput,
     ) -> Result<user::Model> {
         let conn = Database::get_connection_from_context(ctx)?;
         let id = Uuid::parse_str(&id)?;
