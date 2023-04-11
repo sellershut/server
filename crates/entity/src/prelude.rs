@@ -2,7 +2,6 @@
 
 pub use super::account::Entity as Account;
 pub use super::ad::Entity as Ad;
-pub use super::application::Entity as Application;
 pub use super::category::Entity as Category;
 pub use super::region::Entity as Region;
 pub use super::session::Entity as Session;

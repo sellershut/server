@@ -1,7 +1,8 @@
+use api_core::Query;
 use entity::{
     async_graphql::{self, SimpleObject},
     category,
-    sea_orm::{DbErr, EntityTrait, PaginatorTrait, QueryOrder, RuntimeErr},
+    sea_orm::{DbErr, EntityTrait, RuntimeErr},
 };
 
 use async_graphql::{Context, Object};
@@ -27,9 +28,9 @@ impl CategoryQuery {
         let db = ctx
             .data::<Database>()
             .map_err(|e| DbErr::Conn(RuntimeErr::Internal(e.message)))?;
-        category::Entity::find_by_id(id)
-            .one(db.get_connection())
-            .await
+        let conn = db.get_connection();
+
+        Ok(Query::find_category_by_id(conn, id).await?)
     }
 
     /// If ok, returns an object with Categories and the number of pages.
@@ -43,24 +44,10 @@ impl CategoryQuery {
         let db = ctx
             .data::<Database>()
             .map_err(|e| DbErr::Conn(RuntimeErr::Internal(e.message)))?;
-        let entities = if let Some(parent_id) = parent_id {
-            category::Entity::find_by_parent_id(parent_id)
-        } else {
-            category::Entity::find()
-        };
-        // Setup paginator
-        let paginator = entities
-            .order_by_asc(category::Column::Id)
-            .paginate(db.get_connection(), max_per_page);
-        let num_pages = paginator.num_pages().await?;
+        let conn = db.get_connection();
 
-        // Fetch paginated categories
-        paginator
-            .fetch_page(page - 1)
-            .await
-            .map(|p| PaginatedCategories {
-                categories: p,
-                pages: num_pages,
-            })
+        let (categories, pages) =
+            Query::find_categories_in_page(conn, page, max_per_page, parent_id).await?;
+        Ok(PaginatedCategories { categories, pages })
     }
 }

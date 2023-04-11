@@ -4,7 +4,6 @@ pub mod prelude;
 
 pub mod account;
 pub mod ad;
-pub mod application;
 pub mod category;
 pub mod region;
 pub mod session;

@@ -1,3 +1,4 @@
+mod mutation;
 mod query;
 
 use entity::{
