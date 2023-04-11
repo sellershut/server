@@ -2,8 +2,8 @@ mod mutation;
 mod query;
 
 use entity::{
-    async_graphql::{EmptyMutation, EmptySubscription, Schema},
-    sea_orm::DatabaseConnection,
+    async_graphql::{Context, EmptyMutation, EmptySubscription, Schema},
+    sea_orm::{DatabaseConnection, DbErr, RuntimeErr},
 };
 
 use self::query::Query;
@@ -25,6 +25,15 @@ impl Database {
 
     pub fn get_connection(&self) -> &DatabaseConnection {
         &self.connection
+    }
+
+    pub fn get_connection_from_context<'a>(
+        ctx: &'a Context<'a>,
+    ) -> Result<&'a DatabaseConnection, DbErr> {
+        let db = ctx
+            .data::<Self>()
+            .map_err(|e| DbErr::Conn(RuntimeErr::Internal(e.message)))?;
+        Ok(db.get_connection())
     }
 }
 

@@ -1,5 +1,4 @@
 use entity::{
-    async_graphql::{self, SimpleObject},
     category::{self, Entity as Category},
     sea_orm::{DbConn, DbErr, EntityTrait, PaginatorTrait, QueryOrder},
 };

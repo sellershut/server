@@ -2,7 +2,7 @@ use api_core::Query;
 use entity::{
     async_graphql::{self, SimpleObject},
     category,
-    sea_orm::{DbErr, EntityTrait, RuntimeErr},
+    sea_orm::DbErr,
 };
 
 use async_graphql::{Context, Object};
@@ -25,10 +25,7 @@ impl CategoryQuery {
         ctx: &Context<'_>,
         id: i32,
     ) -> Result<Option<category::Model>, DbErr> {
-        let db = ctx
-            .data::<Database>()
-            .map_err(|e| DbErr::Conn(RuntimeErr::Internal(e.message)))?;
-        let conn = db.get_connection();
+        let conn = Database::get_connection_from_context(ctx)?;
 
         Ok(Query::find_category_by_id(conn, id).await?)
     }
@@ -41,10 +38,7 @@ impl CategoryQuery {
         max_per_page: u64,
         parent_id: Option<i32>,
     ) -> Result<PaginatedCategories, DbErr> {
-        let db = ctx
-            .data::<Database>()
-            .map_err(|e| DbErr::Conn(RuntimeErr::Internal(e.message)))?;
-        let conn = db.get_connection();
+        let conn = Database::get_connection_from_context(ctx)?;
 
         let (categories, pages) =
             Query::find_categories_in_page(conn, page, max_per_page, parent_id).await?;
