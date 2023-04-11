@@ -1,5 +1,5 @@
 use entity::{
-    sea_orm::{DbConn, DbErr, EntityTrait, Set},
+    sea_orm::{prelude::Uuid, DbConn, DbErr, EntityTrait, Set},
     user,
     user::Entity as User,
 };
@@ -9,6 +9,7 @@ use crate::Mutation;
 impl Mutation {
     pub async fn create_user(db: &DbConn, form_data: user::Model) -> Result<user::Model, DbErr> {
         let active_model = user::ActiveModel {
+            id: Set(Uuid::new_v4()),
             name: Set(form_data.name.to_owned()),
             email_verified: Set(form_data.email_verified.to_owned()),
             image: Set(form_data.image.to_owned()),

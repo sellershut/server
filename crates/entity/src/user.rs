@@ -7,11 +7,11 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Serialize, Deserialize, Eq, SimpleObject)]
 #[sea_orm(table_name = "user")]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     #[sea_orm(column_type = "Text", nullable)]
     pub name: Option<String>,
-    #[sea_orm(column_type = "Text", nullable)]
+    #[sea_orm(column_type = "Text", nullable, unique)]
     pub email: Option<String>,
     pub email_verified: Option<DateTimeWithTimeZone>,
     #[sea_orm(column_type = "Text", nullable)]

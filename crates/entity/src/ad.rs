@@ -5,11 +5,11 @@ use sea_orm::entity::prelude::*;
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq)]
 #[sea_orm(table_name = "ad")]
 pub struct Model {
-    #[sea_orm(primary_key)]
+    #[sea_orm(primary_key, auto_increment = false)]
     pub id: Uuid,
     pub title: String,
     pub price: Decimal,
-    pub user_id: String,
+    pub user_id: Uuid,
     pub images: Option<Vec<String>>,
     pub created_at: DateTimeWithTimeZone,
     pub deleted_at: Option<DateTimeWithTimeZone>,
