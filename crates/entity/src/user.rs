@@ -49,3 +49,9 @@ impl Related<super::session::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+impl Entity {
+    pub fn find_by_email(id: String) -> Select<Entity> {
+        Self::find().filter(Column::Email.eq(Some(id)))
+    }
+}
