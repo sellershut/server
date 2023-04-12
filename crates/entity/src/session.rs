@@ -34,3 +34,9 @@ impl Related<super::user::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+impl Entity {
+    pub fn find_by_session_token(session_token: String) -> Select<Entity> {
+        Self::find().filter(Column::SessionToken.eq(session_token))
+    }
+}

@@ -1,7 +1,5 @@
 mod category;
+mod session;
 mod user;
-
-pub use category::*;
-pub use user::*;
 
 pub struct Query;
