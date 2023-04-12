@@ -10,6 +10,7 @@ impl Mutation {
     pub async fn create_user(db: &DbConn, form_data: user::Model) -> Result<user::Model, DbErr> {
         let active_model = user::ActiveModel {
             id: Set(Uuid::new_v4()),
+            email: Set(form_data.email.to_owned()),
             name: Set(form_data.name.to_owned()),
             email_verified: Set(form_data.email_verified.to_owned()),
             image: Set(form_data.image.to_owned()),
