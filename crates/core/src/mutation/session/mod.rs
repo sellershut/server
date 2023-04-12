@@ -7,7 +7,7 @@ use entity::{
     session::Entity as Session,
 };
 
-use crate::Mutation;
+use crate::{DeleteResult, Mutation};
 
 impl Mutation {
     pub async fn create_session(
@@ -51,5 +51,13 @@ impl Mutation {
         } else {
             Err(DbErr::RecordNotFound(session_token.to_string()))
         }
+    }
+
+    pub async fn delete_session(db: &DbConn, session_token: String) -> Result<DeleteResult, DbErr> {
+        let res = Session::delete_by_session(session_token).exec(db).await?;
+        Ok(DeleteResult {
+            success: true,
+            rows_affected: res.rows_affected,
+        })
     }
 }

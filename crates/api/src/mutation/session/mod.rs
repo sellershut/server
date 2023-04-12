@@ -1,6 +1,6 @@
 mod input;
 
-use api_core::Mutation;
+use api_core::{DeleteResult, Mutation};
 use async_graphql::{Context, Object, Result};
 use entity::{
     async_graphql,
@@ -37,5 +37,15 @@ impl SessionMutation {
         let conn = Database::get_connection_from_context(ctx)?;
 
         Ok(Mutation::update_session(conn, session_token, user_id, expires).await?)
+    }
+
+    async fn delete_session(
+        &self,
+        ctx: &Context<'_>,
+        session_token: String,
+    ) -> Result<DeleteResult> {
+        let conn = Database::get_connection_from_context(ctx)?;
+
+        Ok(Mutation::delete_session(conn, session_token).await?)
     }
 }
