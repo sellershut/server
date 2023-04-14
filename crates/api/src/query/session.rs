@@ -29,10 +29,7 @@ impl SessionQuery {
 
         let result = Query::find_user_by_session_token(conn, session_token.clone())
             .await?
-            .map(|(session, user)| match user {
-                Some(user) => Some(UserSession { session, user }),
-                _ => None,
-            });
+            .map(|(session, user)| user.map(|user| UserSession { session, user }));
         match result {
             Some(Some(user_session)) => Ok(user_session),
             _ => Err(DbErr::RecordNotFound(format!(

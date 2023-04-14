@@ -19,7 +19,6 @@ impl Mutation {
             session_token: Set(form_data.session_token.to_owned()),
             user_id: Set(form_data.user_id.to_owned()),
             expires: Set(form_data.expires.to_owned()),
-            ..Default::default()
         };
         let res = Session::insert(active_model).exec(db).await?;
 

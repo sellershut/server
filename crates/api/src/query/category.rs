@@ -27,7 +27,7 @@ impl CategoryQuery {
     ) -> Result<Option<category::Model>, DbErr> {
         let conn = Database::get_connection_from_context(ctx)?;
 
-        Ok(Query::find_category_by_id(conn, id).await?)
+        Query::find_category_by_id(conn, id).await
     }
 
     /// If ok, returns an object with Categories and the number of pages.

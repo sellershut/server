@@ -16,7 +16,6 @@ impl Mutation {
             image: Set(form_data.image.to_owned()),
             saved_ads: Set(form_data.saved_ads.to_owned()),
             watched_categories: Set(form_data.watched_categories.to_owned()),
-            ..Default::default()
         };
         let res = User::insert(active_model).exec(db).await?;
 

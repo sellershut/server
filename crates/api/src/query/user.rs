@@ -21,7 +21,7 @@ impl UserQuery {
     ) -> Result<Option<user::Model>, DbErr> {
         let conn = Database::get_connection_from_context(ctx)?;
 
-        Ok(Query::find_user_by_id(conn, id).await?)
+        Query::find_user_by_id(conn, id).await
     }
 
     async fn get_user_by_email(
@@ -31,7 +31,7 @@ impl UserQuery {
     ) -> Result<Option<user::Model>, DbErr> {
         let conn = Database::get_connection_from_context(ctx)?;
 
-        Ok(Query::find_user_by_email(conn, email).await?)
+        Query::find_user_by_email(conn, email).await
     }
 
     async fn get_user_by_account(
@@ -42,6 +42,6 @@ impl UserQuery {
     ) -> Result<Option<user::Model>, DbErr> {
         let conn = Database::get_connection_from_context(ctx)?;
 
-        Ok(Query::find_user_by_account(conn, provider, provider_account_id).await?)
+        Query::find_user_by_account(conn, provider, provider_account_id).await
     }
 }
