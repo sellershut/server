@@ -24,7 +24,8 @@ impl Database {
         .expect("Could not connect to database");
 
         let client =
-            redis::Client::open("redis://127.0.0.1/").expect("could not open redis instance");
+            redis::Client::open(std::env::var("REDIS_URL").expect("REDIS_URL was not set"))
+                .expect("could not open redis instance");
 
         let connection_manager = redis::aio::ConnectionManager::new(client)
             .await
