@@ -22,7 +22,7 @@ impl SessionMutation {
         ctx: &Context<'_>,
         input: SessionInput,
     ) -> Result<session::Model> {
-        let conn = Database::get_connection_from_context(ctx)?;
+        let (conn, _redis) = Database::get_connection_from_context(ctx)?;
 
         Ok(Mutation::create_session(conn, input.into_model_with_arbitrary_id()).await?)
     }
@@ -34,7 +34,7 @@ impl SessionMutation {
         user_id: Option<Uuid>,
         expires: Option<DateTimeWithTimeZone>,
     ) -> Result<session::Model> {
-        let conn = Database::get_connection_from_context(ctx)?;
+        let (conn, _redis) = Database::get_connection_from_context(ctx)?;
 
         Ok(Mutation::update_session(conn, session_token, user_id, expires).await?)
     }
@@ -44,7 +44,7 @@ impl SessionMutation {
         ctx: &Context<'_>,
         session_token: String,
     ) -> Result<DeleteResult> {
-        let conn = Database::get_connection_from_context(ctx)?;
+        let (conn, _redis) = Database::get_connection_from_context(ctx)?;
 
         Ok(Mutation::delete_session(conn, session_token).await?)
     }

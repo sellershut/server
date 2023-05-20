@@ -7,5 +7,6 @@ edition = "2021"
 
 [dependencies]
 async-graphql = { version = "5.0.7", features = ["chrono", "decimal", "uuid"] }
+redis = { version = "0.23.0", features = ["aio", "connection-manager", "tokio-comp"] }
 sea-orm = { version = "0.11.2", features = ["postgres-array", "runtime-tokio-rustls", "sqlx-postgres"] }
 serde = { version = "1.0.159", features = ["derive"] }

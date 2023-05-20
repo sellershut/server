@@ -25,7 +25,7 @@ impl SessionQuery {
         ctx: &Context<'_>,
         session_token: String,
     ) -> Result<UserSession, DbErr> {
-        let conn = Database::get_connection_from_context(ctx)?;
+        let (conn, _redis) = Database::get_connection_from_context(ctx)?;
 
         let result = Query::find_user_by_session_token(conn, session_token.clone())
             .await?

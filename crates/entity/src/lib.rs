@@ -11,4 +11,5 @@ pub mod user;
 pub mod verification_token;
 
 pub use async_graphql;
+pub use redis;
 pub use sea_orm;

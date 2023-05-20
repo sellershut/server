@@ -18,7 +18,7 @@ impl AccountMutation {
         ctx: &Context<'_>,
         input: AccountInput,
     ) -> Result<account::Model> {
-        let conn = Database::get_connection_from_context(ctx)?;
+        let (conn, _redis) = Database::get_connection_from_context(ctx)?;
 
         Ok(Mutation::link_account(conn, input.into_model_with_arbitrary_id()).await?)
     }
@@ -29,7 +29,7 @@ impl AccountMutation {
         provider: String,
         provider_account_id: String,
     ) -> Result<DeleteResult> {
-        let conn = Database::get_connection_from_context(ctx)?;
+        let (conn, _redis) = Database::get_connection_from_context(ctx)?;
 
         Ok(Mutation::unlink_account(conn, provider, provider_account_id).await?)
     }

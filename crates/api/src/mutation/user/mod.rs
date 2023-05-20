@@ -14,7 +14,7 @@ pub struct UserMutation;
 #[Object]
 impl UserMutation {
     async fn create_user(&self, ctx: &Context<'_>, input: UserInput) -> Result<user::Model> {
-        let conn = Database::get_connection_from_context(ctx)?;
+        let (conn, _redis) = Database::get_connection_from_context(ctx)?;
 
         Ok(Mutation::create_user(conn, input.into_model_with_arbitrary_id()).await?)
     }
@@ -25,7 +25,7 @@ impl UserMutation {
         id: String,
         input: UserInput,
     ) -> Result<user::Model> {
-        let conn = Database::get_connection_from_context(ctx)?;
+        let (conn, _redis) = Database::get_connection_from_context(ctx)?;
         let id = Uuid::parse_str(&id)?;
 
         Ok(Mutation::update_user(conn, id, input.into_model_with_arbitrary_id()).await?)
