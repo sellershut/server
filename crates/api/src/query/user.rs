@@ -1,6 +1,6 @@
 use api_core::Query;
 use entity::{
-    async_graphql, redis,
+    async_graphql,
     sea_orm::{prelude::Uuid, DbErr},
     user,
 };
@@ -21,34 +21,16 @@ impl UserQuery {
     ) -> Result<Option<user::Model>, DbErr> {
         let (conn, mut redis) = Database::get_connection_from_context(ctx)?;
         let key = users_schema("id", &id.to_string());
-
-        let redis_cmd = redis::Cmd::get(&key);
-        let result = redis
-            .send_packed_command(&redis_cmd)
-            .await
-            .expect("could not send redis query");
-        match result {
-            redis::Value::Nil => {
-                println!("redis no exist");
-                let ret_val = Query::find_user_by_id(conn, id).await;
-                if let Ok(Some(value)) = &ret_val {
-                    if let Ok(json) = serde_json::to_string(&value) {
-                        let redis_cmd = redis::Cmd::set(&key, json);
-                        if let Err(e) = redis.send_packed_command(&redis_cmd).await {
-                            println!("{e}");
-                        } else {
-                            println!("value set");
-                        }
-                    }
+        if let Ok(cache) = Database::get_redis_cache::<user::Model>(&key, &mut redis).await {
+            Ok(Some(cache))
+        } else {
+            let val = Query::find_user_by_id(conn, id).await;
+            if let Ok(Some(ref user)) = val {
+                if let Err(e) = Database::set_redis_cache(&key, &mut redis, user).await {
+                    println!("{e}");
                 }
-                //set redis
-                ret_val
             }
-            redis::Value::Int(_) => todo!(),
-            redis::Value::Data(_) => todo!(),
-            redis::Value::Bulk(_) => todo!(),
-            redis::Value::Status(_) => todo!(),
-            redis::Value::Okay => todo!(),
+            val
         }
     }
 
@@ -57,9 +39,19 @@ impl UserQuery {
         ctx: &Context<'_>,
         email: String,
     ) -> Result<Option<user::Model>, DbErr> {
-        let (conn, _redis) = Database::get_connection_from_context(ctx)?;
-
-        Query::find_user_by_email(conn, email).await
+        let (conn, mut redis) = Database::get_connection_from_context(ctx)?;
+        let key = users_schema("email", &email);
+        if let Ok(cache) = Database::get_redis_cache::<user::Model>(&key, &mut redis).await {
+            Ok(Some(cache))
+        } else {
+            let val = Query::find_user_by_email(conn, email).await;
+            if let Ok(Some(ref user)) = val {
+                if let Err(e) = Database::set_redis_cache(&key, &mut redis, user).await {
+                    println!("{e}");
+                }
+            }
+            val
+        }
     }
 
     async fn get_user_by_account(
@@ -68,9 +60,22 @@ impl UserQuery {
         provider: String,
         provider_account_id: String,
     ) -> Result<Option<user::Model>, DbErr> {
-        let (conn, _redis) = Database::get_connection_from_context(ctx)?;
-
-        Query::find_user_by_account(conn, provider, provider_account_id).await
+        let (conn, mut redis) = Database::get_connection_from_context(ctx)?;
+        let key = users_schema(
+            "account",
+            &format!("provider={provider}:provider_account_id={provider_account_id}"),
+        );
+        if let Ok(cache) = Database::get_redis_cache::<user::Model>(&key, &mut redis).await {
+            Ok(Some(cache))
+        } else {
+            let val = Query::find_user_by_account(conn, provider, provider_account_id).await;
+            if let Ok(Some(ref user)) = val {
+                if let Err(e) = Database::set_redis_cache(&key, &mut redis, user).await {
+                    println!("{e}");
+                }
+            }
+            val
+        }
     }
 }
 

@@ -51,7 +51,7 @@ impl CategoryQuery {
     ) -> Result<Categories, DbErr> {
         let (conn, mut redis) = Database::get_connection_from_context(ctx)?;
         let key = format!(
-            "category:all:page={page}:max={max_per_page}{}",
+            "category:page={page}:max={max_per_page}{}",
             match parent_id {
                 Some(parent) => format!(":parent:{parent}"),
                 None => "".to_string(),

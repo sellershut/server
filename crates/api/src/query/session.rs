@@ -6,13 +6,14 @@ use entity::{
 };
 
 use async_graphql::{Context, Object};
+use serde::{Deserialize, Serialize};
 
 use crate::Database;
 
 #[derive(Default)]
 pub struct SessionQuery;
 
-#[derive(SimpleObject)]
+#[derive(SimpleObject, Deserialize, Serialize)]
 pub struct UserSession {
     session: session::Model,
     user: user::Model,
@@ -25,16 +26,26 @@ impl SessionQuery {
         ctx: &Context<'_>,
         session_token: String,
     ) -> Result<UserSession, DbErr> {
-        let (conn, _redis) = Database::get_connection_from_context(ctx)?;
-
-        let result = Query::find_user_by_session_token(conn, session_token.clone())
-            .await?
-            .map(|(session, user)| user.map(|user| UserSession { session, user }));
-        match result {
-            Some(Some(user_session)) => Ok(user_session),
-            _ => Err(DbErr::RecordNotFound(format!(
-                "no records match with session token: {session_token}"
-            ))),
+        let (conn, mut redis) = Database::get_connection_from_context(ctx)?;
+        let key = format!("user+session:token={session_token}");
+        if let Ok(cache) = Database::get_redis_cache::<UserSession>(&key, &mut redis).await {
+            Ok(cache)
+        } else {
+            let result = Query::find_user_by_session_token(conn, session_token.clone())
+                .await?
+                .map(|(session, user)| user.map(|user| UserSession { session, user }));
+            match result {
+                Some(Some(user_session)) => {
+                    if let Err(e) = Database::set_redis_cache(&key, &mut redis, &user_session).await
+                    {
+                        println!("{e}");
+                    }
+                    Ok(user_session)
+                }
+                _ => Err(DbErr::RecordNotFound(format!(
+                    "no records match with session token: {session_token}"
+                ))),
+            }
         }
     }
 }

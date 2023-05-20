@@ -2,8 +2,9 @@
 
 use async_graphql::SimpleObject;
 use sea_orm::{entity::prelude::*, Condition, DeleteMany};
+use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, SimpleObject)]
+#[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, SimpleObject, Serialize, Deserialize)]
 #[sea_orm(table_name = "session")]
 #[graphql(concrete(name = "Session", params()))]
 pub struct Model {
