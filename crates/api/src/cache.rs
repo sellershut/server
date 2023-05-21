@@ -1,5 +1,9 @@
 use entity::sea_orm::prelude::Uuid;
 
+#[cfg(test)]
+use strum::EnumCount;
+
+#[cfg_attr(test, derive(EnumCount))]
 pub enum CacheKey {
     Users,
     Categories {
@@ -16,6 +20,7 @@ pub enum CacheKey {
     },
 }
 
+#[cfg_attr(test, derive(EnumCount))]
 pub enum CacheUserFilter {
     Session {
         token: String,
@@ -27,6 +32,7 @@ pub enum CacheUserFilter {
     Id(CacheUserIdType),
 }
 
+#[cfg_attr(test, derive(EnumCount))]
 pub enum CacheUserIdType {
     ID(Uuid),
     Email(String),

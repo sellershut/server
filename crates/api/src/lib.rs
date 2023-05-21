@@ -1,6 +1,8 @@
 mod cache;
 mod mutation;
 mod query;
+#[cfg(test)]
+mod tests;
 
 use entity::{
     async_graphql::{Context, EmptySubscription, Schema},
