@@ -7,8 +7,9 @@ use entity::{
 
 use async_graphql::{Context, Object};
 use serde::{Deserialize, Serialize};
+use tracing::{error, span, Level};
 
-use crate::Database;
+use crate::{cache::CacheKey, Database};
 
 #[derive(Default)]
 pub struct CategoryQuery;
@@ -26,15 +27,17 @@ impl CategoryQuery {
         ctx: &Context<'_>,
         id: i32,
     ) -> Result<Option<category::Model>, DbErr> {
+        let span = span!(Level::TRACE, "get_category_by_id");
+        let _enter = span.enter();
         let (conn, mut redis) = Database::get_connection_from_context(ctx)?;
-        let key = category_schema("id", id);
+        let key = CacheKey::Category { id };
         if let Ok(cache) = Database::get_redis_cache::<category::Model>(&key, &mut redis).await {
             Ok(Some(cache))
         } else {
             let val = Query::find_category_by_id(conn, id).await;
             if let Ok(Some(ref cat)) = val {
                 if let Err(e) = Database::set_redis_cache(&key, &mut redis, cat).await {
-                    println!("{e}");
+                    error!("{e}");
                 }
             }
             val
@@ -49,14 +52,14 @@ impl CategoryQuery {
         max_per_page: u64,
         parent_id: Option<i32>,
     ) -> Result<Categories, DbErr> {
+        let span = span!(Level::TRACE, "get_categories");
+        let _enter = span.enter();
         let (conn, mut redis) = Database::get_connection_from_context(ctx)?;
-        let key = format!(
-            "category:page={page}:max={max_per_page}{}",
-            match parent_id {
-                Some(parent) => format!(":parent:{parent}"),
-                None => "".to_string(),
-            }
-        );
+        let key = CacheKey::Categories {
+            page,
+            max_per_page,
+            parent_id,
+        };
         if let Ok(cache) = Database::get_redis_cache::<Categories>(&key, &mut redis).await {
             Ok(cache)
         } else {
@@ -64,13 +67,9 @@ impl CategoryQuery {
                 Query::find_categories_in_page(conn, page, max_per_page, parent_id).await?;
             let val = Categories { categories, pages };
             if let Err(e) = Database::set_redis_cache(&key, &mut redis, &val).await {
-                println!("{e}");
+                error!("{e}");
             }
             Ok(val)
         }
     }
-}
-
-fn category_schema(field: &str, value: i32) -> String {
-    format!("category:{field}:{value}")
 }

@@ -7,9 +7,9 @@ use entity::{
 
 #[derive(Debug, InputObject)]
 pub struct SessionInput {
-    session_token: String,
-    user_id: Uuid,
-    expires: DateTimeWithTimeZone,
+    pub(crate) session_token: String,
+    pub(crate) user_id: Uuid,
+    pub(crate) expires: DateTimeWithTimeZone,
 }
 
 impl SessionInput {

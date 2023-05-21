@@ -6,8 +6,12 @@ use entity::{
 };
 
 use async_graphql::{Context, Object};
+use tracing::{error, span, Level};
 
-use crate::Database;
+use crate::{
+    cache::{CacheKey, CacheUserFilter, CacheUserIdType},
+    Database,
+};
 
 #[derive(Default)]
 pub struct UserQuery;
@@ -19,8 +23,10 @@ impl UserQuery {
         ctx: &Context<'_>,
         id: Uuid,
     ) -> Result<Option<user::Model>, DbErr> {
+        let span = span!(Level::TRACE, "get_user_by_id");
+        let _enter = span.enter();
         let (conn, mut redis) = Database::get_connection_from_context(ctx)?;
-        let key = users_schema("id", &id.to_string());
+        let key = CacheKey::User(CacheUserFilter::Id(CacheUserIdType::ID(id)));
         if let Ok(cache) = Database::get_redis_cache::<user::Model>(&key, &mut redis).await {
             Ok(Some(cache))
         } else {
@@ -39,15 +45,17 @@ impl UserQuery {
         ctx: &Context<'_>,
         email: String,
     ) -> Result<Option<user::Model>, DbErr> {
+        let span = span!(Level::TRACE, "get_user_by_email");
+        let _enter = span.enter();
         let (conn, mut redis) = Database::get_connection_from_context(ctx)?;
-        let key = users_schema("email", &email);
+        let key = CacheKey::User(CacheUserFilter::Id(CacheUserIdType::Email(email.clone())));
         if let Ok(cache) = Database::get_redis_cache::<user::Model>(&key, &mut redis).await {
             Ok(Some(cache))
         } else {
             let val = Query::find_user_by_email(conn, email).await;
             if let Ok(Some(ref user)) = val {
                 if let Err(e) = Database::set_redis_cache(&key, &mut redis, user).await {
-                    println!("{e}");
+                    error!("{e}");
                 }
             }
             val
@@ -60,11 +68,13 @@ impl UserQuery {
         provider: String,
         provider_account_id: String,
     ) -> Result<Option<user::Model>, DbErr> {
+        let span = span!(Level::TRACE, "get_user_by_account");
+        let _enter = span.enter();
         let (conn, mut redis) = Database::get_connection_from_context(ctx)?;
-        let key = users_schema(
-            "account",
-            &format!("provider={provider}:provider_account_id={provider_account_id}"),
-        );
+        let key = CacheKey::User(CacheUserFilter::Account {
+            provider: provider.clone(),
+            provider_account_id: provider_account_id.clone(),
+        });
         if let Ok(cache) = Database::get_redis_cache::<user::Model>(&key, &mut redis).await {
             Ok(Some(cache))
         } else {
@@ -77,8 +87,4 @@ impl UserQuery {
             val
         }
     }
-}
-
-fn users_schema(field: &str, value: &str) -> String {
-    format!("user:{field}:{value}")
 }

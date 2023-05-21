@@ -7,10 +7,14 @@ use entity::{
 
 use async_graphql::{Context, Object};
 use serde::{Deserialize, Serialize};
+use tracing::{error, span, Level};
 
-use crate::Database;
+use crate::{
+    cache::{CacheKey, CacheUserFilter},
+    Database,
+};
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct SessionQuery;
 
 #[derive(SimpleObject, Deserialize, Serialize)]
@@ -26,25 +30,41 @@ impl SessionQuery {
         ctx: &Context<'_>,
         session_token: String,
     ) -> Result<UserSession, DbErr> {
+        let span = span!(Level::TRACE, "get_user_and_session()");
+        let _enter = span.enter();
         let (conn, mut redis) = Database::get_connection_from_context(ctx)?;
-        let key = format!("user+session:token={session_token}");
-        if let Ok(cache) = Database::get_redis_cache::<UserSession>(&key, &mut redis).await {
-            Ok(cache)
+        let session_key = CacheKey::Session {
+            token: session_token.clone(),
+        };
+        let user_session_key = CacheKey::User(CacheUserFilter::Session {
+            token: session_token.clone(),
+        });
+        let session = Database::get_redis_cache::<session::Model>(&session_key, &mut redis).await;
+        let user = Database::get_redis_cache::<user::Model>(&user_session_key, &mut redis).await;
+        let result = session.and_then(|session| user.map(|user| UserSession { session, user }));
+        if let Ok(result) = result {
+            Ok(result)
         } else {
             let result = Query::find_user_by_session_token(conn, session_token.clone())
                 .await?
                 .map(|(session, user)| user.map(|user| UserSession { session, user }));
-            match result {
-                Some(Some(user_session)) => {
-                    if let Err(e) = Database::set_redis_cache(&key, &mut redis, &user_session).await
-                    {
-                        println!("{e}");
-                    }
-                    Ok(user_session)
+            if let Some(Some(user_session)) = result {
+                if let Err(e) =
+                    Database::set_redis_cache(&session_key, &mut redis, &user_session.session).await
+                {
+                    error!("{e}");
                 }
-                _ => Err(DbErr::RecordNotFound(format!(
+                if let Err(e) =
+                    Database::set_redis_cache(&user_session_key, &mut redis, &user_session.user)
+                        .await
+                {
+                    error!("{e}");
+                }
+                Ok(user_session)
+            } else {
+                Err(DbErr::RecordNotFound(format!(
                     "no records match with session token: {session_token}"
-                ))),
+                )))
             }
         }
     }

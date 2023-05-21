@@ -10,4 +10,5 @@ api-core = { version = "0.1.0", path = "../core" }
 entity = { version = "0.1.0", path = "../entity" }
 serde = { version = "1.0.163", features = ["derive"] }
 serde_json = "1.0.96"
-thiserror = "1.0.40"
+tokio = { version = "1.28.1", features = ["macros"] }
+tracing = "0.1.37"

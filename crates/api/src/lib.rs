@@ -1,3 +1,4 @@
+mod cache;
 mod mutation;
 mod query;
 
@@ -8,7 +9,7 @@ use entity::{
 };
 use serde::{Deserialize, Serialize};
 
-use self::{mutation::Mutation, query::Query};
+use self::{cache::CacheKey, mutation::Mutation, query::Query};
 
 pub struct Database {
     pub connection: DatabaseConnection,
@@ -54,27 +55,36 @@ impl Database {
     }
 
     pub async fn get_redis_cache<T>(
-        key: &str,
-        connection_manager: &mut redis::aio::ConnectionManager,
+        key: &CacheKey,
+        redis: &mut redis::aio::ConnectionManager,
     ) -> Result<T, RedisError>
     where
         T: for<'a> Deserialize<'a>,
     {
-        let redis_cmd = redis::Cmd::get(key);
-        let res = connection_manager.send_packed_command(&redis_cmd).await?;
+        let redis_cmd = redis::Cmd::get(key.to_string());
+        let res = redis.send_packed_command(&redis_cmd).await?;
         let result = String::from_redis_value(&res)?;
         let output = serde_json::from_str(&result).expect("err deserializing");
         Ok(output)
     }
 
     pub async fn set_redis_cache(
-        key: &str,
-        connection_manager: &mut redis::aio::ConnectionManager,
+        key: &CacheKey,
+        redis: &mut redis::aio::ConnectionManager,
         data: impl Serialize,
     ) -> Result<(), RedisError> {
         let stream = serde_json::to_string(&data).unwrap();
-        let redis_cmd = redis::Cmd::set(key, stream);
-        connection_manager.send_packed_command(&redis_cmd).await?;
+        let redis_cmd = redis::Cmd::set(key.to_string(), stream);
+        redis.send_packed_command(&redis_cmd).await?;
+        Ok(())
+    }
+
+    pub async fn delete_redis_cache(
+        key: &CacheKey,
+        redis: &mut redis::aio::ConnectionManager,
+    ) -> Result<(), RedisError> {
+        let redis_cmd = redis::Cmd::del(key.to_string());
+        redis.send_packed_command(&redis_cmd).await?;
         Ok(())
     }
 }
