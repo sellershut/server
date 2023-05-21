@@ -33,7 +33,7 @@ impl UserQuery {
             let val = Query::find_user_by_id(conn, id).await;
             if let Ok(Some(ref user)) = val {
                 if let Err(e) = Database::set_redis_cache(&key, &mut redis, user).await {
-                    println!("{e}");
+                    error!("{e}");
                 }
             }
             val
@@ -81,7 +81,7 @@ impl UserQuery {
             let val = Query::find_user_by_account(conn, provider, provider_account_id).await;
             if let Ok(Some(ref user)) = val {
                 if let Err(e) = Database::set_redis_cache(&key, &mut redis, user).await {
-                    println!("{e}");
+                    error!("{e}");
                 }
             }
             val

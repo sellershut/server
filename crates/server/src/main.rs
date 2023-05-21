@@ -1,3 +1,4 @@
+mod log;
 use std::net::SocketAddr;
 
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
@@ -11,10 +12,11 @@ use axum::{
 use dotenvy::dotenv;
 use entity::async_graphql::http::{playground_source, GraphQLPlaygroundConfig};
 
-use tower_http::cors::CorsLayer;
+use tower_http::{cors::CorsLayer, trace::TraceLayer};
 
 #[tokio::main]
 async fn main() {
+    log::log();
     #[cfg(debug_assertions)]
     dotenv().ok();
 
@@ -22,6 +24,7 @@ async fn main() {
 
     let app = Router::new()
         .route("/api/graphql", routing::get(playground).post(handler))
+        .layer(TraceLayer::new_for_http())
         .layer(Extension(schema))
         .layer(
             CorsLayer::new()
@@ -31,13 +34,13 @@ async fn main() {
         );
 
     let address = SocketAddr::from(([127, 0, 0, 1], 3000));
-    println!("Server is live on {address}");
+    tracing::info!("Server is live on {address}");
 
     if let Err(e) = axum::Server::bind(&address)
         .serve(app.into_make_service())
         .await
     {
-        eprintln!("{e}");
+        tracing::error!("{e}");
     }
 }
 
