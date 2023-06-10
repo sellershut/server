@@ -41,4 +41,4 @@ args = [ "migrate", "down" ]
 [tasks.dev]
 workspace = false
 command = "cargo"
-args = [ "watch", "-x run" ]
+args = [ "watch", "-c", "-x run" ]
